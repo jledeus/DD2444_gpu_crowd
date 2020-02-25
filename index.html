@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+
+<body>
+  <script type="vertex" id="vs">
+         #version 300 es
+
+         layout (location=0) in vec4 position;
+         layout (location=1) in vec3 color;
+
+         out vec3 vColor;
+
+         uniform vec2 u_position;
+
+         void main() {
+
+             vColor = color;
+             gl_Position = position;
+             gl_Position.x = position.x + u_position.x;
+             gl_Position.y = position.y + u_position.y;
+             //gl_Position vec4(u_position);
+         }
+     </script>
+     <script type="fragment" id="fs">
+         #version 300 es
+         precision highp float;
+
+         in vec3 vColor;
+         out vec4 fragColor;
+
+         void main() {
+             fragColor = vec4(vColor, 1.0);
+         }
+     </script>
+     <canvas id="webgl-canvas"></canvas>
+     <!-- Entry point for the script -->
+     <script src="init_canvas.js"></script>
+     <script src="crowd.js"></script>
+</body>

@@ -1,6 +1,6 @@
 // Constants
 var GROUPS = 1000;
-var NUM_PARTICLES = 128;
+var NUM_PARTICLES = 256;
 // The initialization is partly taken from a webgl2 tutorial, http://webglworkshop.com/28/01-triangle-webgl2.html
 
 var canvas = document.getElementById("webgl-canvas");

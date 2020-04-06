@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+
+<body>
+
+
+  <script type="compute" id="cs">
+    #version 310 es
+
+    struct Boid
+    {
+      vec4 pos;
+      vec4 vel;
+      vec4 col;
+    };
+
+    layout (local_size_x = ##GROUPS##, local_size_y = 1, local_size_z = 1) in;
+    layout (std430, binding = 0) buffer SSBO {
+      Boid boids[];
+    } ssbo;
+
+    uniform float time;
+
+    void update_position(uint b) {
+
+    vec4 pos = vec4(0.0);
+    float factor = 1000.0;
+
+    for (uint i= uint(gl_WorkGroupID.x*gl_WorkGroupSize.x); i < (uint(1)+gl_WorkGroupID.x)*gl_WorkGroupSize.x ; i++) {
+        if(i == b)
+          continue;
+        pos += ssbo.boids[i].pos;
+    }
+
+    pos = pos/(float(gl_WorkGroupSize.x) - 1.0);
+    ssbo.boids[b].vel += (pos - ssbo.boids[b].pos) / factor;
+    ssbo.boids[b].vel = vec4(ssbo.boids[b].vel.xy,0,0);
+    }
+
+// Keep a small distance from the other particles
+void update_position2(uint b) {
+  float pos_x = 0.0;
+  float pos_y = 0.0;
+
+  for (uint i= uint(gl_WorkGroupID.x*gl_WorkGroupSize.x); i < (uint(1)+gl_WorkGroupID.x)*gl_WorkGroupSize.x ; i++) {
+    if(i == b)
+      continue;
+
+    if(abs(ssbo.boids[i].pos.x - ssbo.boids[b].pos.x) < 0.005) {
+      pos_x = pos_x - (ssbo.boids[i].pos.x - ssbo.boids[b].pos.x);
+    }
+
+    if(abs(ssbo.boids[i].pos.y - ssbo.boids[b].pos.y) < 0.005) {
+      pos_y = pos_y - (ssbo.boids[i].pos.y - ssbo.boids[b].pos.y);
+    }
+  }
+
+  // Update velocity
+  ssbo.boids[b].vel.x += pos_x;
+  ssbo.boids[b].vel.y += pos_y;
+
+}
+
+void update_position3(uint b) {
+
+vec4 vel = vec4(0.0);
+float factor = 200.0;
+
+for (uint i= uint(gl_WorkGroupID.x*gl_WorkGroupSize.x); i < (uint(1)+gl_WorkGroupID.x)*gl_WorkGroupSize.x ; i++) {
+    if(i == b)
+      continue;
+    vel += ssbo.boids[i].vel;
+}
+
+vel = vel/(float(gl_WorkGroupSize.x) - 1.0);
+ssbo.boids[b].vel += (vel - ssbo.boids[b].vel) / factor;
+}
+
+
+void limit_velocity(uint b) {
+  float vlim = 0.001;
+  if (float(abs(ssbo.boids[b].vel)) > vlim) {
+  ssbo.boids[b].vel = (ssbo.boids[b].vel / (float(abs(ssbo.boids[b].vel)))*vlim);
+
+  }
+}
+
+void control_boundaries(uint b) {
+  if(ssbo.boids[b].pos.x < -1.1)
+    ssbo.boids[b].pos.x = 1.1;
+  if(ssbo.boids[b].pos.y < -1.1)
+    ssbo.boids[b].pos.y = 1.1;
+  if(ssbo.boids[b].pos.x > 1.1)
+    ssbo.boids[b].pos.x = -1.1;
+  if(ssbo.boids[b].pos.y > 1.1)
+    ssbo.boids[b].pos.y = -1.1;
+
+}
+
+    void main() {
+    uint threadIndex = gl_GlobalInvocationID.x;
+
+    update_position(threadIndex);
+    update_position2(threadIndex);
+    update_position3(threadIndex);
+
+    limit_velocity(threadIndex);
+    control_boundaries(threadIndex);
+
+    ssbo.boids[threadIndex].pos += ssbo.boids[threadIndex].vel;
+
+  }
+  </script>
+
+  <script type="vertex" id="vs">
+    #version 310 es
+
+    layout (location = 0) in vec4 position;
+    layout (location = 1) in vec4 velocity;
+    layout (location = 2) in vec4 color;
+
+    out vec4 vColor;
+
+    void main() {
+      vColor = vec4(color);
+      gl_Position = vec4(position);
+      gl_PointSize = 5.0;
+    }
+  </script>
+
+  <script type="fragment" id="fs">
+  #version 310 es
+  precision highp float;
+
+  in vec4 vColor;
+  out vec4 outColor;
+
+  void main() {
+    outColor = vec4(vColor);
+  }
+  </script>
+     <canvas id="webgl-canvas"></canvas>
+     <!-- Entry point for the script -->
+     <script src="init_canvas.js"></script>
+     <script src="crowd.js"></script>
+</body>

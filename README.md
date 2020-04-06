@@ -24,7 +24,7 @@ The algorithmic aspects of the boid simulation follows three rules or steering b
 ##### Rule 1 - Cohesion
 The first rule makes the boids to move to the "center of mass" or average position of the group they belong to. The animation below contains of two groups where each individual boid steers to the average position of the group. [1,2]
 
-![Cohesion](gifs/Cohesion.gif)
+![Cohesion](gifs/cohesion.gif)
 
 Animation of Rule 1
 
@@ -32,13 +32,13 @@ Animation of Rule 1
 ##### Rule 2 - Separation
 The second rules steers each boid so they avoid crowding. In the animation below the boids first moves to the average position of the group. If they get to close they steer away to avoid crowding. [1,2]
 
-![Separation](gifs/Separation.gif)
+![Separation](gifs/separation.gif)
 
 Animation of Rule 1&2
 
 ##### Rule 3 - Alignment
 In alignment each boid steers to the average heading of the group they belong to. In the animation below we can see that the boids adapts to the average heading of the group. [1,2]
-![Alignment](gifs/Alignment.gif)
+![Alignment](gifs/alignment.gif)
 
 Animation of Rule 3
 

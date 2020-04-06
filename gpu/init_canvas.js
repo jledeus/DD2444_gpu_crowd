@@ -1,6 +1,6 @@
 // Constants
-var GROUPS = 1000;
-var NUM_PARTICLES = 256;
+var GROUPS = 3;
+var NUM_PARTICLES = 8;
 // The initialization is partly taken from a webgl2 tutorial, http://webglworkshop.com/28/01-triangle-webgl2.html
 
 var canvas = document.getElementById("webgl-canvas");
@@ -64,41 +64,3 @@ gl.linkProgram(renderProgram);
 if (!gl.getProgramParameter(renderProgram, gl.LINK_STATUS)) {
     console.error(gl.getProgramInfoLog(renderProgram));
 }
-
-
-
-/////////////////////
-// Placeholder geometry for one person
-/////////////////////
-
-//gl.useProgram(renderProgram);
-
-//var triangleArray = gl.createVertexArray();
-//gl.bindVertexArray(triangleArray);
-
-//var positions = new Float32Array([
-//    -0.05, -0.05, 0.0,
-//    -0.05, 0.05, 0.0,
-//    0.05, -0.05, 0.0,
-//    0.05, 0.05, 0.0,
-//]);
-
-//var positionBuffer = gl.createBuffer();
-//gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-//gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-//gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-//gl.enableVertexAttribArray(0);
-
-//var colors = new Float32Array([
-//    0.0, 0.0, 0.0,
-//    0.0, 0.0, 0.0,
-//    0.0, 0.0, 0.0,
-//    0.0, 0.0, 0.0,
-
-//]);
-
-//var colorBuffer = gl.createBuffer();
-//gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-//gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
-//gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 0, 0);
-//gl.enableVertexAttribArray(1);

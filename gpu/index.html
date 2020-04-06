@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 
 <body>
-
-
   <script type="compute" id="cs">
     #version 310 es
 
@@ -20,7 +18,8 @@
 
     uniform float time;
 
-    void update_position(uint b) {
+    // Cohesion
+    void rule1(uint b) {
 
     vec4 pos = vec4(0.0);
     float factor = 1000.0;
@@ -36,8 +35,8 @@
     ssbo.boids[b].vel = vec4(ssbo.boids[b].vel.xy,0,0);
     }
 
-// Keep a small distance from the other particles
-void update_position2(uint b) {
+// Separation
+void rule2(uint b) {
   float pos_x = 0.0;
   float pos_y = 0.0;
 
@@ -60,7 +59,8 @@ void update_position2(uint b) {
 
 }
 
-void update_position3(uint b) {
+// Alignment
+void rule3(uint b) {
 
 vec4 vel = vec4(0.0);
 float factor = 200.0;
@@ -75,7 +75,7 @@ vel = vel/(float(gl_WorkGroupSize.x) - 1.0);
 ssbo.boids[b].vel += (vel - ssbo.boids[b].vel) / factor;
 }
 
-
+// Limits the velocity of the applicaton
 void limit_velocity(uint b) {
   float vlim = 0.001;
   if (float(abs(ssbo.boids[b].vel)) > vlim) {
@@ -84,6 +84,7 @@ void limit_velocity(uint b) {
   }
 }
 
+// If a boid is on the other side it is moved to the other side of the screen
 void control_boundaries(uint b) {
   if(ssbo.boids[b].pos.x < -1.1)
     ssbo.boids[b].pos.x = 1.1;
@@ -93,21 +94,19 @@ void control_boundaries(uint b) {
     ssbo.boids[b].pos.x = -1.1;
   if(ssbo.boids[b].pos.y > 1.1)
     ssbo.boids[b].pos.y = -1.1;
-
 }
 
     void main() {
     uint threadIndex = gl_GlobalInvocationID.x;
 
-    update_position(threadIndex);
-    update_position2(threadIndex);
-    update_position3(threadIndex);
+    rule1(threadIndex);
+    rule2(threadIndex);
+    rule3(threadIndex);
 
     limit_velocity(threadIndex);
     control_boundaries(threadIndex);
 
     ssbo.boids[threadIndex].pos += ssbo.boids[threadIndex].vel;
-
   }
   </script>
 
@@ -128,7 +127,7 @@ void control_boundaries(uint b) {
   </script>
 
   <script type="fragment" id="fs">
-  #version 310 es
+    #version 310 es
   precision highp float;
 
   in vec4 vColor;
@@ -138,8 +137,8 @@ void control_boundaries(uint b) {
     outColor = vec4(vColor);
   }
   </script>
-     <canvas id="webgl-canvas"></canvas>
-     <!-- Entry point for the script -->
-     <script src="init_canvas.js"></script>
-     <script src="crowd.js"></script>
+  <canvas id="webgl-canvas"></canvas>
+  <!-- Entry point for the script -->
+  <script src="init_canvas.js"></script>
+  <script src="crowd.js"></script>
 </body>

@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <body>
   <script type="vertex" id="vs">
          #version 300 es
@@ -12,8 +11,8 @@
          uniform vec2 u_position;
          uniform vec3 u_color;
 
+         // Simple shader that moves the square to the position of the boid
          void main() {
-
              vColor = vec3(u_color);
              gl_Position = position;
              gl_Position.x = position.x + u_position.x;
@@ -24,9 +23,6 @@
      <script type="fragment" id="fs">
          #version 300 es
          precision highp float;
-
-
-
          in vec3 vColor;
          out vec4 fragColor;
 

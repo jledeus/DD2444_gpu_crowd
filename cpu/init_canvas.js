@@ -69,7 +69,6 @@ var colors = new Float32Array([
     0.0, 0.0, 0.0,
     0.0, 0.0, 0.0,
     0.0, 0.0, 0.0,
-
 ]);
 
 var colorBuffer = gl.createBuffer();

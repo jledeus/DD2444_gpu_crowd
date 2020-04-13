@@ -1,5 +1,5 @@
 // Constants
-var GROUPS = 3;
+var GROUPS = 10000;
 var NUM_PARTICLES = 8;
 // The initialization is partly taken from a webgl2 tutorial, http://webglworkshop.com/28/01-triangle-webgl2.html
 

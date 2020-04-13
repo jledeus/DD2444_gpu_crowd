@@ -85,8 +85,14 @@ time = 0.0;
 // Load the location of the uniform
 //var resolutionUniformLocation = gl.getUniformLocation(program, "u_position");
 
-setInterval(function() {
+var last_iteration = new Date();
+var second_measure = new Date();
 
+var FPS = 0;
+var FPS_Counter = 0;
+var samples = []
+
+function loop() {
   //time += 1.0;
   // Do the compute shaders calculations first
   gl.useProgram(computeProgram);
@@ -99,4 +105,35 @@ setInterval(function() {
   gl.clear(gl.COLOR_BUFFER_BIT);
   gl.useProgram(renderProgram);
   gl.drawArrays(gl.POINTS, 0, GROUPS * NUM_PARTICLES);
-}, 10);
+
+  var this_iteration = new Date();
+
+  FPS += 1000 / (this_iteration - last_iteration);
+  FPS_Counter += 1;
+
+  if (this_iteration - second_measure > 1000) {
+    second_measure = this_iteration;
+    console.log(FPS / FPS_Counter);
+    samples.push(FPS / FPS_Counter);
+    FPS = 0;
+    FPS_Counter = 0;
+  }
+
+  if(samples.length == 5) {
+    var counter = 0;
+    for(i = 0; i < samples.length; i++) {
+      counter += samples[i];
+    }
+    console.log("SAMPLES");
+    console.log(counter/samples.length);
+    console.log("SAMPLES");
+    samples = [];
+  }
+  last_iteration = this_iteration;
+
+}
+
+
+setInterval(function() {
+  loop();
+}, 1);

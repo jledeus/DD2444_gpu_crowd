@@ -191,7 +191,57 @@ CPU: AMD x.x.x
 
 # Results
  Plots of fps
+ The animation ran for one minute and the average FPS was measured.
 
+
+ **Without Drawing**
+
+ `Groups size: 8`
+
+ | Number of Groups        | 100 | 1000 |10000 |
+ | :-------------: |:-------------:| :-----:|:---: |
+ | CPU (fps)     | 260 | 238 | 32 |
+ | GPU (fps)     | |  | |
+
+ `Groups size: 64`
+
+ | Number of Groups        | 100 | 1000 |10000 |
+ | :-------------: |:-------------:| :-----:|:---: |
+ | CPU (fps)     | 58 | 5.56 | 0.58 |
+ | GPU (fps)     | |  | |
+
+
+ `Groups size: 128`
+
+ | Number of Groups        | 100 | 1000 |10000 |
+ | :-------------: |:-------------:| :-----:|:---: |
+ | CPU (fps)     |14.7 |1.41 | 0.14 |
+ | GPU (fps)     | |  | |
+
+---
+ **With Drawing**
+
+ `Groups size: 8`
+
+ | Number of Groups        | 100 | 1000 |10000 |
+ | :-------------: |:-------------:| :-----:|:---: |
+ | CPU (fps)     | 260 | 157 | 13.5 |
+ | GPU (fps)     | |  | |
+
+ `Groups size: 64`
+
+ | Number of Groups        | 100 | 1000 |10000 |
+ | :-------------: |:-------------:| :-----:|:---: |
+ | CPU (fps)     | 41 | 4.45 | 0.45 |
+ | GPU (fps)     | |  | |
+
+
+ `Groups size: 128`
+
+ | Number of Groups        | 100 | 1000 |10000 |
+ | :-------------: |:-------------:| :-----:|:---: |
+ | CPU (fps)     | 11.02 | 1.07 | 0.11 |
+ | GPU (fps)     | |  | |
 
 
 # Discussion

@@ -107,8 +107,8 @@ function control_boundaries(person) {
 var groups_crowd = [];
 
 // Visible in range [-1,1]
-var groups = 3; // # of groups
-var boids = 8; // # of boids per group
+var groups = 4; // # of groups
+var boids = 2; // # of boids per group
 
 // Random initialiszation
 for (var j = 0; j < groups; j++) {
@@ -140,7 +140,16 @@ for (var j = 0; j < groups; j++) {
 var resolutionUniformLocation = gl.getUniformLocation(program, "u_position");
 var color_uniform = gl.getUniformLocation(program, "u_color");
 
-setInterval(function() {
+
+var last_iteration = new Date();
+var second_measure = new Date();
+
+var FPS = 0;
+var FPS_Counter = 0;
+var samples = []
+
+function loop() {
+
   gl.clear(gl.COLOR_BUFFER_BIT); // Clear the screen for next simulation
 
   for (var j = 0; j < groups; j++) {
@@ -162,4 +171,77 @@ setInterval(function() {
     });
   }
 
-}, 10);
+  var this_iteration = new Date();
+
+  FPS += 1000 / (this_iteration - last_iteration);
+  FPS_Counter += 1;
+
+  if (this_iteration - second_measure > 1000) {
+    second_measure = this_iteration;
+    console.log(FPS / FPS_Counter);
+    samples.push(FPS / FPS_Counter);
+    FPS = 0;
+    FPS_Counter = 0;
+  }
+
+  if(samples.length == 5) {
+    var counter = 0;
+    for(i = 0; i < samples.length; i++) {
+      counter += samples[i];
+    }
+    console.log("SAMPLES");
+    console.log(counter/samples.length);
+    console.log("SAMPLES");
+    samples = [];
+  }
+  last_iteration = this_iteration;
+}
+
+function loop_no_draw() {
+  for (var j = 0; j < groups; j++) {
+    crowd = groups_crowd[j];
+    crowd.forEach((c, i) => {
+      rule1(c, i, crowd);
+      rule2(c, i, crowd);
+      rule3(c, i, crowd);
+      limit_velocity(c);
+      control_boundaries(c);
+
+      // Update velocity
+      c.pos_x += c.vel_x;
+      c.pos_y += c.vel_y;
+    });
+  }
+
+  var this_iteration = new Date();
+
+  FPS += 1000 / (this_iteration - last_iteration);
+  FPS_Counter += 1;
+
+  if (this_iteration - second_measure > 1000) {
+    second_measure = this_iteration;
+    console.log(FPS / FPS_Counter);
+    samples.push(FPS / FPS_Counter);
+    FPS = 0;
+    FPS_Counter = 0;
+  }
+
+  if(samples.length == 5) {
+    var counter = 0;
+    for(i = 0; i < samples.length; i++) {
+      counter += samples[i];
+    }
+    console.log("SAMPLES");
+    console.log(counter/samples.length);
+    console.log("SAMPLES");
+    samples = [];
+  }
+
+  last_iteration = this_iteration;
+}
+
+
+setInterval(function() {
+  loop();
+  //loop_no_draw();
+}, 1);

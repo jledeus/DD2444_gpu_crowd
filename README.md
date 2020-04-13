@@ -44,6 +44,16 @@ Animation of Rule 3
 
 [1,2]
 
+
+##### Simulation
+
+How boids moves in a simulation is trivially determined by the implementation and interpertation of the rules above.
+
+To demonstrate a full simulation with all rules applied, see below.
+
+![All togheter](gifs/all_together.gif)
+Simulation off all rules applied with 10 groups and 4 boids in each group. Similar to pseudocode provided by [3].
+
 ## Compute Shaders
 Compute shaders is a shader stage for arbitrary computation [8].
 
@@ -182,17 +192,34 @@ The purpose of this implementation is not to capture any realistic motion or dec
 stateless,
 
 ## Software
-Google Chrome x.x.x
-## Hardware
-GPU: Geforce x.x
+Google Chrome: Version 81.0.4044.92 (Official version) (64 bits)
 
-CPU: AMD x.x.x
+Following command line flags where used:
+* --use-gl=angle
+* --enable-webgl2-compute-context
+* --use-angle=gl
+* --use-cmd-decoder=passthrough
+
+OS: Windows 10 Home
+
+## Hardware
+
+
+CPU: AMD Ryzen 7 3700X 8-Core Processor 3.59 GHz
+
+GPU: GeForce RTX 2070 SUPER
+
+RAM: 16.0 GB
 
 
 # Results
- Plots of fps
- The animation ran for one minute and the average FPS was measured.
 
+
+## Simulations
+
+Demonstration of a simulation with all rules with group size = 3, and number of groups = 8
+
+## Data
  Miliseconds per calculation
 
  Compute shader calculations
@@ -222,6 +249,13 @@ CPU: AMD x.x.x
  | CPU (fps)     | 47.9 | 481.5 | 4885.5 |
  | GPU (fps)     | 0.6450  | 2.2072 | 6.0252 |
 
+
+![CPU Without Rendering](plots/cpu_no.png)
+Plotted data for CPU without rendering
+
+![GPU Without Rendering](plots/gpu_no.png)
+Plotted data for GPU without rendering
+
 ---
  **With Drawing**
 
@@ -248,6 +282,13 @@ CPU: AMD x.x.x
  | GPU (fps)     | 1.5636 | 5.8171 | 32.3603 |
 
 
+![CPU With Rendering](plots/cpu_yes.png)
+Plotted data for CPU with rendering
+
+
+![GPU With Rendering](plots/gpu_yes.png)
+Plotted data for GPU with rendering
+
 # Discussion
 
 I thought that passing the data from the CPU to the GPU for each boid would be a bigger bottleneck
@@ -258,6 +299,8 @@ https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
 
 ## Optimization
 Shared memory inside the work group.
+
+## What did I learn?
 
 # Conclusion
 

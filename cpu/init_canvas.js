@@ -52,10 +52,10 @@ var triangleArray = gl.createVertexArray();
 gl.bindVertexArray(triangleArray);
 
 var positions = new Float32Array([
-    -0.005, -0.005, 0.0,
-    -0.005, 0.005, 0.0,
-    0.005, -0.005, 0.0,
-    0.005, 0.005, 0.0,
+    -0.01, -0.01, 0.0,
+    -0.01, 0.01, 0.0,
+    0.01, -0.01, 0.0,
+    0.01, 0.01, 0.0,
 ]);
 
 var positionBuffer = gl.createBuffer();

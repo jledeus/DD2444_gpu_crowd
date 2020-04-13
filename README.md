@@ -204,14 +204,14 @@ CPU: AMD x.x.x
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     |  |  |  |
+ | CPU (fps)     | 0.21 | 2.46 | 24.55 |
  | GPU (fps)     | 0.0626  | 0.1159 | 0.8028 |
 
  `Groups size: 64`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     |  |  |  |
+ | CPU (fps)     | 12.66 | 120.63 | 1215.00 |
  | GPU (fps)     | 0.3125 | 2.1075 | 4.4824 |
 
 
@@ -219,7 +219,7 @@ CPU: AMD x.x.x
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | |  |  |
+ | CPU (fps)     | 47.9 | 481.5 | 4885.5 |
  | GPU (fps)     | 0.6450  | 2.2072 | 6.0252 |
 
 ---
@@ -229,14 +229,14 @@ CPU: AMD x.x.x
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     |  |  |  |
+ | CPU (fps)     | 0.48  | 4.5600 | 48.01  |
  | GPU (fps)     | 0.3753 |  0.8935 | 3.5271  |
 
  `Groups size: 64`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     |  |  |  |
+ | CPU (fps)     | 14.09 | 140.49  | 1405.00  |
  | GPU (fps)     | 1.8800 | 3.0857 | 14.9731  |
 
 
@@ -244,11 +244,13 @@ CPU: AMD x.x.x
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     |  |  |  |
+ | CPU (fps)     | 51.82 | 510.00 | 5130.00 |
  | GPU (fps)     | 1.5636 | 5.8171 | 32.3603 |
 
 
 # Discussion
+
+I thought that passing the data from the CPU to the GPU for each boid would be a bigger bottleneck
 
 https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
 

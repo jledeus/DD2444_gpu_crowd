@@ -193,30 +193,34 @@ CPU: AMD x.x.x
  Plots of fps
  The animation ran for one minute and the average FPS was measured.
 
+ Miliseconds per calculation
 
- **Without Drawing**
+ Compute shader calculations
+
+
+ **Without Drawing - Buffering data**
 
  `Groups size: 8`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 260 | 238 | 32 |
- | GPU (fps)     | 258 | 258 | 256 |
+ | CPU (fps)     |  |  |  |
+ | GPU (fps)     | 0.0626  | 0.1159 | 0.8028 |
 
  `Groups size: 64`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 58 | 5.56 | 0.58 |
- | GPU (fps)     | 257 | 255 | 255 |
+ | CPU (fps)     |  |  |  |
+ | GPU (fps)     | 0.3125 | 2.1075 | 4.4824 |
 
 
  `Groups size: 128`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     |14.7 |1.41 | 0.14 |
- | GPU (fps)     | 256 | 254 | - |
+ | CPU (fps)     | |  |  |
+ | GPU (fps)     | 0.6450  | 2.2072 | 6.0252 |
 
 ---
  **With Drawing**
@@ -225,27 +229,30 @@ CPU: AMD x.x.x
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 260 | 157 | 13.5 |
- | GPU (fps)     | 260 | 257  | |
+ | CPU (fps)     |  |  |  |
+ | GPU (fps)     | 0.3753 |  0.8935 | 3.5271  |
 
  `Groups size: 64`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 41 | 4.45 | 0.45 |
- | GPU (fps)     | |  | |
+ | CPU (fps)     |  |  |  |
+ | GPU (fps)     | 1.8800 | 3.0857 | 14.9731  |
 
 
  `Groups size: 128`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 11.02 | 1.07 | 0.11 |
- | GPU (fps)     | |  | |
+ | CPU (fps)     |  |  |  |
+ | GPU (fps)     | 1.5636 | 5.8171 | 32.3603 |
 
 
 # Discussion
 
+https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
+
+60 fps for most browser
 
 ## Optimization
 Shared memory inside the work group.

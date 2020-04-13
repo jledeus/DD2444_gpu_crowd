@@ -88,12 +88,18 @@ time = 0.0;
 var last_iteration = new Date();
 var second_measure = new Date();
 
-var FPS = 0;
-var FPS_Counter = 0;
+
 var samples = []
 
-function loop() {
-  //time += 1.0;
+var ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+var query = gl.createQuery();
+
+
+function loop(s) {
+
+if(s == 0)
+  gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
+
   // Do the compute shaders calculations first
   gl.useProgram(computeProgram);
   //gl.uniform1f(timeUniformLocation, time);
@@ -106,20 +112,24 @@ function loop() {
   gl.useProgram(renderProgram);
   gl.drawArrays(gl.POINTS, 0, GROUPS * NUM_PARTICLES);
 
-  var this_iteration = new Date();
+  if(s == 0)
+    gl.endQuery(ext.TIME_ELAPSED_EXT);
+}
 
-  FPS += 1000 / (this_iteration - last_iteration);
-  FPS_Counter += 1;
+var s = 0;
+function renderLoop() {
+loop(s);
+  s = 1;
 
-  if (this_iteration - second_measure > 1000) {
-    second_measure = this_iteration;
-    console.log(FPS / FPS_Counter);
-    samples.push(FPS / FPS_Counter);
-    FPS = 0;
-    FPS_Counter = 0;
-  }
+  // See how much time the rendering of the object took in nanoseconds.
+  var available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
+  if (available) {
+  var timeElapsed = gl.getQueryParameter(query, gl.QUERY_RESULT);
+  console.log(timeElapsed * 0.000001);
+  samples.push(timeElapsed * 0.000001)
+  s = 0;
 
-  if(samples.length == 5) {
+  if(samples.length == 10) {
     var counter = 0;
     for(i = 0; i < samples.length; i++) {
       counter += samples[i];
@@ -129,11 +139,9 @@ function loop() {
     console.log("SAMPLES");
     samples = [];
   }
-  last_iteration = this_iteration;
-
 }
 
+  window.requestAnimationFrame(renderLoop);
+}
 
-setInterval(function() {
-  loop();
-}, 1);
+renderLoop();

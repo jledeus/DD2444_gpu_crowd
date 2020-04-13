@@ -8,9 +8,10 @@ This repo contains the content for the project course DD2444
 Modern browsers such as Google Chrome are getting more sophisticated as time passes and gets introduced with more functionality. One benefit of using a modern browser is that you can run the same application on different platforms. With HTML 5 we have access to [Web Graphics Library (WebGL)](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API) in the browser with the help of JavaScript. WebGL is a hardware-based rendering that utilizes the GPU on the clients' machine. One drawback with WebGL is that it doesn't support General Purpose GPU (GPGPU) applications. Fortunately, we have access to [WebGL 2.0 Compute](https://www.khronos.org/registry/webgl/specs/latest/2.0-compute/). It can be accessed in developer mode in Google Chrome or Windows Microsoft Edge. With WebGL 2.0 Compute we have access to compute shaders. They are used for arbitrary computations, which means that they don't have to be connected to the graphics pipeline directly. This research compares performance on similar implementations of Reynold Boids [1,2] on the CPU and GPU during real-time simulations.
 
 ## Research Questions
-* How suited are global and local tasks for agents in parallel computations?
-* How well does it scale in terms of the number of groups and group size?
-* How large can the groups be for real-time simulations in the browser?
+* How suited are global and local tasks for boids in parallel computations?
+* How well does it scale when changing group size and how many groups?
+* How does group size impact performance for compute shaders?
+* Can many groups of boids run in the browser with real time performance?
 
 # Background
 
@@ -22,7 +23,7 @@ Simulating virtual crowds with multiple agents is of interest in many applicatio
 The algorithmic aspects of the boid simulation follows three rules or steering behaviors.
 
 ##### Rule 1 - Cohesion
-The first rule makes the boids to move to the "center of mass" or average position of the group they belong to. The animation below contains of two groups where each individual boid steers to the average position of the group. [1,2]
+The first rule makes the boids to move to the "center of mass" or average position of the group they belong to. The animation below contains of two groups where each individual boid steers to the average position of the group they belong to. [1,2]
 
 ![Cohesion](gifs/cohesion.gif)
 
@@ -30,58 +31,79 @@ Animation of Rule 1
 
 
 ##### Rule 2 - Separation
-The second rules steers each boid so they avoid crowding. In the animation below the boids first moves to the average position of the group. If they get to close they steer away to avoid crowding. [1,2]
+The second rules steers each boid so they avoid crowding. In the animation below the boids first moves to the average position of the group. If a boid gets to close to other members in the group it steers away to avoid crowding. [1,2]
 
 ![Separation](gifs/separation.gif)
 
-Animation of Rule 1&2
+Animation of Rule 1,2
 
 ##### Rule 3 - Alignment
-In alignment each boid steers to the average heading of the group they belong to. In the animation below we can see that the boids adapts to the average heading of the group. [1,2]
+In alignment each boid steers to the average heading of the group they belong to. In the animation below, the boids adapts to the average heading of the group. [1,2]
 ![Alignment](gifs/alignment.gif)
 
 Animation of Rule 3
 
-[1,2]
-
 
 ##### Simulation
 
-How boids moves in a simulation is trivially determined by the implementation and interpertation of the rules above.
+How boids moves in a simulation is trivially determined by the implementation and interpretation of the rules above. The animations above has similarities to pseudocode provided by [3].
 
 To demonstrate a full simulation with all rules applied, see below.
 
 ![All togheter](gifs/all_together.gif)
-Simulation off all rules applied with 10 groups and 4 boids in each group. Similar to pseudocode provided by [3].
+
+Simulation of Rule 1,2,3 applied with 10 groups and 4 boids in each group. See method for implementation details.
 
 ## Compute Shaders
-Compute shaders is a shader stage for arbitrary computation [8].
+A simulation with many boids might be slow if it is calculated sequentially since each boid needs to be considered. Fortunately there exist compute shaders. Compute shaders is a shader stage for arbitrary computations on the GPU [8].
 
+Compute Shaders uses OpenGL Shading Language (GLSL) [7]. Every thread in a compute shader runs the same kernel code and can be identified with any of the following:
+```
+in uvec3 gl_NumWorkGroups;
+in uvec3 gl_WorkGroupID;
+in uvec3 gl_LocalInvocationID;
+in uvec3 gl_GlobalInvocationID;
+in uint  gl_LocalInvocationIndex;
+```
+[8].
 ### Compute Space
 
 #### Work-Group
 ![](https://arm-software.github.io/opengl-es-sdk-for-android/compute_work_group.png)
 
-The smallest unit of a compute shader is a Work-Group [9].
+The smallest unit of a compute shader is a Work-Group [9]. The size of the work group is decided in the shader code with the following declaration:
+
+```
+layout (local_size_x = x, local_size_y = y, local_size_z = z) in;
+```
+The space of a Work-group can be 3-dimensional and the threads in a work group runs in "parallel" [8].
 
 #### Work-Groups
 
+Are defined in dispatch call
+
 ![Arm Developer Center](https://arm-software.github.io/opengl-es-sdk-for-android/compute_dispatch.png)
 
-Work-Groups contains the Work-Items [6]. The execution order of the works groups can be arbitrary so it is important that they can be processed individually [8]. There exist shared variables within a Work-Group so communication is suitable here. Communication between Work-Groups might deadlock the system [8].
+The execution order of the works groups can be arbitrary so it is important that they can be processed individually [8].
+
+
+![](https://csdl-images.computer.org/mags/cg/2013/03/figures/mcg20130300054.gif)
+The space for work groups are three dimensional [8]
+
+There exist shared variables within a Work-Group so communication is suitable here. Communication between Work-Groups might deadlock the system [8].
 
 
 To get good performance it is of high importance to get the right amount of occupancy. The threads of the Work Groups run in parallel, so the Work-Items per Work Groups will impact performance. [7]
 
 #### Limitations of Compute Space
 
-![](https://csdl-images.computer.org/mags/cg/2013/03/figures/mcg20130300054.gif)
-
-TODO: https://www.khronos.org/opengl/wiki/Compute_Shader
+There are some limitations of how many Work-groups and how big they are: https://www.khronos.org/opengl/wiki/Compute_Shader
 
 ### Shader Storage Buffer Object
 Shader Storage Buffer Objects (SSBO) can hold arbitrary data and compute shaders can read and write to them in parallel.
 [6]
+
+Binding SSBO to Array Buffer
 
 # Method
 
@@ -89,6 +111,9 @@ Shader Storage Buffer Objects (SSBO) can hold arbitrary data and compute shaders
 Before entering the computations the random initialization for the boids is done on the CPU.
 
 ## Algorithm
+
+**Move this to background**
+
 The CPU and GPU implementation of the Reynold Boids are inspired by the pseudocode provided by [3].
 
 ---
@@ -174,6 +199,10 @@ Calculations in javaScript
 Pass the data to WebGL and then render.
 
 ## GPU Implementation
+
+Dispatch function
+
+Local size
 
 ### Calculations
 Compute shaders are not part of the rendering pipeleine, they are executed before. After the dispatch function the memory barrier function is called to ensure that the calculations are complete.
@@ -301,6 +330,8 @@ https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
 Shared memory inside the work group.
 
 ## What did I learn?
+
+* Add simulation when maxing
 
 # Conclusion
 

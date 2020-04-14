@@ -145,7 +145,7 @@ var samples = []
 
 function loop() {
 
-  var last_iteration = new Date();
+  var last_iteration = performance.now();
 
   gl.clear(gl.COLOR_BUFFER_BIT); // Clear the screen for next simulation
 
@@ -168,7 +168,7 @@ function loop() {
     });
   }
 
-  var this_iteration = new Date();
+  var this_iteration = performance.now();
 
   samples.push(this_iteration - last_iteration);
 

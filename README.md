@@ -25,6 +25,29 @@ The algorithmic aspects of the boid simulation follows three rules or steering b
 ##### Rule 1 - Cohesion
 The first rule makes the boids to move to the "center of mass" or average position of the group they belong to. The animation below contains of two groups where each individual boid steers to the average position of the group they belong to. [1,2]
 
+The CPU and GPU implementation of the Reynold Boids are inspired by the pseudocode provided by [3].
+
+
+```
+PROCEDURE rule1(boid bJ)
+
+		Vector pcJ
+
+		FOR EACH BOID b
+			IF b != bJ THEN
+				pcJ = pcJ + b.position
+			END IF
+		END
+
+		pcJ = pcJ / N-1
+
+		RETURN (pcJ - bJ.position) / 100
+
+END PROCEDURE
+
+```
+Pseudocode provided by [3].
+
 ![Cohesion](gifs/cohesion.gif)
 
 Animation of Rule 1
@@ -33,12 +56,53 @@ Animation of Rule 1
 ##### Rule 2 - Separation
 The second rules steers each boid so they avoid crowding. In the animation below the boids first moves to the average position of the group. If a boid gets to close to other members in the group it steers away to avoid crowding. [1,2]
 
+```
+PROCEDURE rule2(boid bJ)
+
+		Vector c = 0;
+
+		FOR EACH BOID b
+			IF b != bJ THEN
+				IF |b.position - bJ.position| < 100 THEN
+					c = c - (b.position - bJ.position)
+				END IF
+			END IF
+		END
+
+		RETURN c
+
+END PROCEDURE
+```
+Pseudocode provided by [3].
+
+
 ![Separation](gifs/separation.gif)
 
 Animation of Rule 1,2
 
 ##### Rule 3 - Alignment
 In alignment each boid steers to the average heading of the group they belong to. In the animation below, the boids adapts to the average heading of the group. [1,2]
+
+```
+PROCEDURE rule3(boid bJ)
+
+		Vector pvJ
+
+		FOR EACH BOID b
+			IF b != bJ THEN
+				pvJ = pvJ + b.velocity
+			END IF
+		END
+
+		pvJ = pvJ / N-1
+
+		RETURN (pvJ - bJ.velocity) / 8
+
+END PROCEDURE
+```
+pseudocode provided by [3].
+
+
 ![Alignment](gifs/alignment.gif)
 
 Animation of Rule 3
@@ -110,79 +174,104 @@ Binding SSBO to Array Buffer
 ## Initialization
 Before entering the computations the random initialization for the boids is done on the CPU.
 
+Random location on the screen, both implementation have the same initialization.
+That routine is written in javaScript
+
+Each boid was represented with a data-structure that with information about its **position**, **velocity** and **color**.
+
+The general overview of the algorithm follow the pseudocode provided by [3].
+
 ## Algorithm
 
-**Move this to background**
 
-The CPU and GPU implementation of the Reynold Boids are inspired by the pseudocode provided by [3].
 
----
-Rule 1 - Cohesion
-```
-PROCEDURE rule1(boid bJ)
 
-		Vector pcJ
 
-		FOR EACH BOID b
-			IF b != bJ THEN
-				pcJ = pcJ + b.position
-			END IF
-		END
+### CPU
 
-		pcJ = pcJ / N-1
-
-		RETURN (pcJ - bJ.position) / 100
-
-END PROCEDURE
+All calculations regarding the boids position and velocity were calculated on the CPU with JavaScript. The GPU were responsible for drawing the boids with WebGL2.0. The basic outline for the algorithm were the following:
 
 ```
-Pseudocode provided by [3].
+Boids groups = Initialization
 
----
-Rule 2 - Separation
+FOR group IN groups:
+		FOR boid IN group:
+
+			rule1(boid, group)
+			rule2(boid, group)
+			rule3(boid, group)
+
+			limit_velocity(boid)
+			control_boundaries(boid)
+
+			// Update position
+			boid.pos += boid.vel
+
+	  END FOR
+END FOR
+```
+
+The purpose of rule1, rule2 and rule3 are described in the background. They have similarities to the pseudocode provided by [3].
+
+Performance were measured with **performance.now()**
+
+
+
+The time complexity for the CPU implementation is 0( GROUP_SIZE^2 * NUMBER_OF_GROUPS ).
+
+See cpu/crowd.js for implementation in JavaScript.
+
+### GPU
+
+The basic outline for the implementation on the GPU were similar to the CPU implementation. The size of the work group were determined by the group size which can be seen below.
 
 ```
-PROCEDURE rule2(boid bJ)
+....
+layout (local_size_x = ##GROUP_SIZE##, local_size_y = 1, local_size_z = 1) in;
+....
+void main() {
+	uint threadIndex = gl_GlobalInvocationID.x;
 
-		Vector c = 0;
+	rule1(threadIndex);
+	rule2(threadIndex);
+	rule3(threadIndex);
 
-		FOR EACH BOID b
-			IF b != bJ THEN
-				IF |b.position - bJ.position| < 100 THEN
-					c = c - (b.position - bJ.position)
-				END IF
-			END IF
-		END
+	limit_velocity(threadIndex);
+	control_boundaries(threadIndex);
 
-		RETURN c
-
-END PROCEDURE
+	ssbo.boids[threadIndex].pos += ssbo.boids[threadIndex].vel;
+}
 ```
-pseudocode provided by [3].
 
----
-Rule 3 - Alignment
+After the dispatch function the memory barrier function is called to ensure that the calculations are complete.
+
 ```
-PROCEDURE rule3(boid bJ)
-
-		Vector pvJ
-
-		FOR EACH BOID b
-			IF b != bJ THEN
-				pvJ = pvJ + b.velocity
-			END IF
-		END
-
-		pvJ = pvJ / N-1
-
-		RETURN (pvJ - bJ.velocity) / 8
-
-END PROCEDURE
+gl.useProgram(computeProgram);
+gl.dispatchCompute(GROUPS, 1, 1);
+gl.memoryBarrier(gl.SHADER_STORAGE_BARRIER_BIT);
 ```
-pseudocode provided by [3].
 
----
-#### Other
+After that the vertex shader can read from the SSBO.
+
+
+
+
+The GPU runs asyncrhonous so it wasn't measured on the CPU due to accuracy. Instead  EXT_disjoint_timer_query were used to measure the duration for some GL commands [10].
+```
+var ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+var query = gl.createQuery();
+gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
+
+** CALLS TO BE MEASURED **
+
+gl.endQuery(ext.TIME_ELAPSED_EXT);
+```
+
+Compute shaders are not part of the rendering pipeleine, they are executed before.
+The glsl code for the compute shader can be seen in gpu/index.html
+
+
+## Other
 * The velocity to was controlled to be within reasonalbe limits during simulations.
 * If a boid moved out of bounds, it was moved to the other side of the screen in the simulation.
 * The constants in the pseudocode were adapted to each implementation.
@@ -190,19 +279,10 @@ pseudocode provided by [3].
 ## Visuals
 The visuals are kept to a minimum since the focus lies on performance on the algorithm. Therefore each boid is represented by a colorful square. Each group of boids has a distinct color randomly selected.
 
-## CPU Implementation
 
-### Calculations
-Calculations in javaScript
-
-### Rendering
+## Rendering
 Pass the data to WebGL and then render.
 
-## GPU Implementation
-
-Dispatch function
-
-Local size
 
 ### Calculations
 Compute shaders are not part of the rendering pipeleine, they are executed before. After the dispatch function the memory barrier function is called to ensure that the calculations are complete.
@@ -213,8 +293,6 @@ After that the vertex shader can read from the SSBO.
 
 WebGL 2.0
 
-## Performance
-Performance is measured by increasing GROUPS and GROUP_SIZE.
 
 ## Algorithmic considerations
 The purpose of this implementation is not to capture any realistic motion or decision making of the boids. Its intention is to compare similar workload of a sequential compared to a parallel implementation on the GPU. when it comes to
@@ -241,12 +319,10 @@ GPU: GeForce RTX 2070 SUPER
 RAM: 16.0 GB
 
 
+# Performance
+Rendering the boids could favor the GPU implementation since it didn't have to pass the positional data each frame. The GPU implementation used the same data structure for the compute shader and the rendering of the boids. Performance were therefore measured with and without rendering.
+
 # Results
-
-
-## Simulations
-
-Demonstration of a simulation with all rules with group size = 3, and number of groups = 8
 
 ## Data
  Miliseconds per calculation
@@ -351,6 +427,8 @@ Shared memory inside the work group.
 
 [7] Gunadi, Samuel I., and Pujianto Yugopuspito. "Real-Time GPU-based SPH Fluid Simulation Using Vulkan and OpenGL Compute Shaders." 2018 4th International Conference on Science and Technology (ICST). IEEE, 2018.
 
-[8] Kronos, https://www.khronos.org/opengl/wiki/Compute_Shader
+[8] Khronos, https://www.khronos.org/opengl/wiki/Compute_Shader
 
 [9] ARM Developer Center, https://arm-software.github.io/opengl-es-sdk-for-android/compute_intro.html
+
+[10] Khronos, https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_disjoint_timer_query.txt , https://www.khronos.org/registry/webgl/extensions/EXT_disjoint_timer_query_webgl2/

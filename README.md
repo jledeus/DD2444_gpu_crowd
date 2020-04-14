@@ -336,14 +336,14 @@ Rendering the boids could favor the GPU implementation since it didn't have to p
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 0.21 | 2.46 | 24.55 |
+ | CPU (fps)     | 0.2114 | 2.4621 | 24.5572 |
  | GPU (fps)     | 0.0626  | 0.1159 | 0.8028 |
 
  `Groups size: 64`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 12.66 | 120.63 | 1215.00 |
+ | CPU (fps)     | 12.6602 | 120.6312 | 1215.0044 |
  | GPU (fps)     | 0.3125 | 2.1075 | 4.4824 |
 
 
@@ -351,7 +351,7 @@ Rendering the boids could favor the GPU implementation since it didn't have to p
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 47.9 | 481.5 | 4885.5 |
+ | CPU (fps)     | 47.9020 | 481.5475 | 4885.5201 |
  | GPU (fps)     | 0.6450  | 2.2072 | 6.0252 |
 
 
@@ -368,14 +368,14 @@ Plotted data for GPU without rendering
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 0.48  | 4.5600 | 48.01  |
+ | CPU (fps)     | 0.4801  | 4.5600 | 48.0131  |
  | GPU (fps)     | 0.3753 |  0.8935 | 3.5271  |
 
  `Groups size: 64`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 14.09 | 140.49  | 1405.00  |
+ | CPU (fps)     | 14.0901 | 140.4932  | 1405.1521  |
  | GPU (fps)     | 1.8800 | 3.0857 | 14.9731  |
 
 
@@ -383,7 +383,7 @@ Plotted data for GPU without rendering
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 51.82 | 510.00 | 5130.00 |
+ | CPU (fps)     | 51.8221 | 510.4012 | 5130.1024 |
  | GPU (fps)     | 1.5636 | 5.8171 | 32.3603 |
 
 

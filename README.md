@@ -172,24 +172,20 @@ Binding SSBO to Array Buffer
 # Method
 
 ## Initialization
-Before entering the computations the random initialization for the boids is done on the CPU.
+Each boid was represented with a data-structure with information about its **position**, **velocity** and **color**. The position and velocity is randomly initialized. Each group is assigned a random color for interpretability.
 
-Random location on the screen, both implementation have the same initialization.
-That routine is written in javaScript
+#### Group Size
+Group size decides how many boids each group consist of.
 
-Each boid was represented with a data-structure that with information about its **position**, **velocity** and **color**.
+#### Number Of Groups
+The number of groups determines how many groups of boids in the simulation.
 
-The general overview of the algorithm follow the pseudocode provided by [3].
 
 ## Algorithm
 
+The pseudocode below describes the basic simulation on the CPU and GPU.
+The main steps of the algorithm is to update the position of each boid based on some rules. Each boid updates its position with respect to the members of the group it belongs to.
 
-
-
-
-### CPU
-
-All calculations regarding the boids position and velocity were calculated on the CPU with JavaScript. The GPU were responsible for drawing the boids with WebGL2.0. The basic outline for the algorithm were the following:
 
 ```
 Boids groups = Initialization
@@ -211,19 +207,26 @@ FOR group IN groups:
 END FOR
 ```
 
-The purpose of rule1, rule2 and rule3 are described in the background. They have similarities to the pseudocode provided by [3].
+The purpose of rule1, rule2 and rule3 are described in the background.
+They are similar to the pseudocode provided by [3].
 
-Performance were measured with **performance.now()**
+#### Other
+* The velocity was controlled to be within reasonable limits during the simulations.
+* If a boid moved off screen it was moved to the other side of the screen.
+* The constants in the pseudocode were adapted to each implementation.
 
+### CPU
 
+The CPU implementation is similar to the pseudocode above and implemented with JavaScript. Each boid were rendered during their update of position.
+The GPU is responsible for drawing the boids with WebGL2.0.
 
-The time complexity for the CPU implementation is 0( GROUP_SIZE^2 * NUMBER_OF_GROUPS ).
+Performance is measured with performance.now().
 
-See cpu/crowd.js for implementation in JavaScript.
+See cpu/ folder for implementation in JavaScript.
 
 ### GPU
 
-The basic outline for the implementation on the GPU were similar to the CPU implementation. The size of the work group were determined by the group size which can be seen below.
+The basic outline for the implementation on the GPU is similar to the CPU implementation. The size of each work group is determined by the group size.
 
 ```
 ....
@@ -243,20 +246,18 @@ void main() {
 }
 ```
 
-After the dispatch function the memory barrier function is called to ensure that the calculations are complete.
+The amount of work groups launched is determined by the number of groups.
 
 ```
 gl.useProgram(computeProgram);
-gl.dispatchCompute(GROUPS, 1, 1);
+gl.dispatchCompute(NUMBER_OF_GROUPS, 1, 1);
 gl.memoryBarrier(gl.SHADER_STORAGE_BARRIER_BIT);
 ```
+After the dispatch function, a memory barrier function is called to ensure that the calculations are complete before rendering.
 
-After that the vertex shader can read from the SSBO.
+The SSBO is used as a vertex attribute in other shaders and is binded as an ARRAY_BUFFER. A performance gain with this approach is that there is no need to copy memory back and forth between the CPU and GPU besides initalization of the boids.
 
-
-
-
-The GPU runs asyncrhonous so it wasn't measured on the CPU due to accuracy. Instead  EXT_disjoint_timer_query were used to measure the duration for some GL commands [10].
+Performance is measured differently compared to the CPU implementation since the GPU runs asyncrhonous. EXT_disjoint_timer_query is used to measure the duration for GL commands [10]. The snippet below a sample.
 ```
 var ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
 var query = gl.createQuery();
@@ -267,41 +268,33 @@ gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
 gl.endQuery(ext.TIME_ELAPSED_EXT);
 ```
 
-Compute shaders are not part of the rendering pipeleine, they are executed before.
-The glsl code for the compute shader can be seen in gpu/index.html
+The compute shader are not part of the rendering pipeleine. It was executed before the rendering of the boids.
 
+```
+// Do the compute shaders calculations first
+gl.useProgram(computeProgram);
+gl.dispatchCompute(NUMBER_OF_GROUPS, 1, 1);
+gl.memoryBarrier(gl.SHADER_STORAGE_BARRIER_BIT);
 
-## Other
-* The velocity to was controlled to be within reasonalbe limits during simulations.
-* If a boid moved out of bounds, it was moved to the other side of the screen in the simulation.
-* The constants in the pseudocode were adapted to each implementation.
+// Render the boids after compute shader
+gl.clear(gl.COLOR_BUFFER_BIT);
+gl.useProgram(renderProgram);
+gl.drawArrays(gl.POINTS, 0, GROUPS * NUM_PARTICLES);
+```
+
+For full implementation of the compute shader see the gpu/ folder.
 
 ## Visuals
-The visuals are kept to a minimum since the focus lies on performance on the algorithm. Therefore each boid is represented by a colorful square. Each group of boids has a distinct color randomly selected.
-
-
-## Rendering
-Pass the data to WebGL and then render.
-
-
-### Calculations
-Compute shaders are not part of the rendering pipeleine, they are executed before. After the dispatch function the memory barrier function is called to ensure that the calculations are complete.
-
-After that the vertex shader can read from the SSBO.
-
-### Rendering
-
-WebGL 2.0
+The visuals are kept to a minimum since the focus lies on performance of the algorithm. Therefore, each boid is represented by a colorful square. Each group of boids has a distinct color randomly selected.
 
 
 ## Algorithmic considerations
-The purpose of this implementation is not to capture any realistic motion or decision making of the boids. Its intention is to compare similar workload of a sequential compared to a parallel implementation on the GPU. when it comes to
-stateless,
+The purpose of this research is not to capture any realistic motion or decision making of the boids. The intention is to compare similar workload of a sequential implementation compared to a parallel.
 
 ## Software
 Google Chrome: Version 81.0.4044.92 (Official version) (64 bits)
 
-Following command line flags where used:
+Following command line flags where used for the GPU implementation:
 * --use-gl=angle
 * --enable-webgl2-compute-context
 * --use-angle=gl
@@ -318,41 +311,47 @@ GPU: GeForce RTX 2070 SUPER
 
 RAM: 16.0 GB
 
+# Measuring performance
+The time measured is how long it takes to update the position of all boids once. Several samples were gathered for an average.
 
-# Performance
-Rendering the boids could favor the GPU implementation since it didn't have to pass the positional data each frame. The GPU implementation used the same data structure for the compute shader and the rendering of the boids. Performance were therefore measured with and without rendering.
+Rendering the boids has the possibility to favor the GPU implementation since it doesn't have to copy memory between the CPU and GPU for each frame. Therefore,  performance is measured with and without rendering.
+
+* The group size varied from 8, 64, 128 in the simulation.
+* The number of groups varied from 100, 1000, 10000 in the simulation.
+
+The amount of boids in the simulation ranges from 800 to 1280000.
+
+Even if the GPU can render more than 60 fps (≈ 16 ms per frame) it is limited by the animation frame.
+The animation frame is usually 60 callbacks per seconds in most browsers [11].
+None of the drawings were faster than 60 fps.
+
 
 # Results
 
-## Data
- Miliseconds per calculation
-
- Compute shader calculations
-
-
- **Without Drawing - Buffering data**
+ **Without Drawing**
 
  `Groups size: 8`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 0.2114 | 2.4621 | 24.5572 |
- | GPU (fps)     | 0.0626  | 0.1159 | 0.8028 |
+ | CPU (ms)     | 0.2114 | 2.4621 | 24.5572 |
+ | GPU (ms)     | 0.0626  | 0.1159 | 0.8028 |
+
 
  `Groups size: 64`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 12.6602 | 120.6312 | 1215.0044 |
- | GPU (fps)     | 0.3125 | 2.1075 | 4.4824 |
+ | CPU (ms)     | 12.6602 | 120.6312 | 1215.0044 |
+ | GPU (ms)     | 0.3125 | 2.1075 | 4.4824 |
 
 
  `Groups size: 128`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 47.9020 | 481.5475 | 4885.5201 |
- | GPU (fps)     | 0.6450  | 2.2072 | 6.0252 |
+ | CPU (ms)     | 47.9020 | 481.5475 | 4885.5201 |
+ | GPU (ms)     | 0.6450  | 2.2072 | 6.0252 |
 
 
 ![CPU Without Rendering](plots/cpu_no.png)
@@ -361,6 +360,12 @@ Plotted data for CPU without rendering
 ![GPU Without Rendering](plots/gpu_no.png)
 Plotted data for GPU without rendering
 
+When increasing the number of groups and group sizes the workload for the CPU almost increases linear. Going from 100 to 1000 groups increases the amount of time it takes to update the position of the boids by a factor of approximately 10.
+
+
+The GPU is noticeably faster throughout compared to the CPU. For the higher workload it is over 800% faster. A interesting observation is that the time it takes to calculate the larger groups are comparable, even if one of the groups has twice as many boids.
+
+
 ---
  **With Drawing**
 
@@ -368,23 +373,23 @@ Plotted data for GPU without rendering
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 0.4801  | 4.5600 | 48.0131  |
- | GPU (fps)     | 0.3753 |  0.8935 | 3.5271  |
+ | CPU (ms)     | 0.4801  | 4.5600 | 48.0131  |
+ | GPU (ms)     | 0.3753 |  0.8935 | 3.5271  |
 
  `Groups size: 64`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 14.0901 | 140.4932  | 1405.1521  |
- | GPU (fps)     | 1.8800 | 3.0857 | 14.9731  |
+ | CPU (ms)     | 14.0901 | 140.4932  | 1405.1521  |
+ | GPU (ms)     | 1.8800 | 3.0857 | 14.9731  |
 
 
  `Groups size: 128`
 
  | Number of Groups        | 100 | 1000 |10000 |
  | :-------------: |:-------------:| :-----:|:---: |
- | CPU (fps)     | 51.8221 | 510.4012 | 5130.1024 |
- | GPU (fps)     | 1.5636 | 5.8171 | 32.3603 |
+ | CPU (ms)     | 51.8221 | 510.4012 | 5130.1024 |
+ | GPU (ms)     | 1.5636 | 5.8171 | 32.3603 |
 
 
 ![CPU With Rendering](plots/cpu_yes.png)
@@ -394,16 +399,21 @@ Plotted data for CPU with rendering
 ![GPU With Rendering](plots/gpu_yes.png)
 Plotted data for GPU with rendering
 
+
 # Discussion
 
 I thought that passing the data from the CPU to the GPU for each boid would be a bigger bottleneck
 
-https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
 
-60 fps for most browser
+
+Measuring accurade performance is also difficult since the application runs in a browser.
+
+Seuential imlementation, 10x workload would lead to same increase
 
 ## Optimization
-Shared memory inside the work group.
+Shared memory inside the work group. By intantion a naive implementation, other tricks could be used to gain performance in the loops, and
+
+I am a new user to compute shaders and have just began researching the capabilites of the hardware
 
 ## What did I learn?
 
@@ -432,3 +442,5 @@ Shared memory inside the work group.
 [9] ARM Developer Center, https://arm-software.github.io/opengl-es-sdk-for-android/compute_intro.html
 
 [10] Khronos, https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_disjoint_timer_query.txt , https://www.khronos.org/registry/webgl/extensions/EXT_disjoint_timer_query_webgl2/
+
+[11] Mozilla, https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
